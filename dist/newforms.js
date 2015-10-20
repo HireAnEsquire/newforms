@@ -238,12 +238,14 @@ var Concur = require('Concur')
 var is = require('isomorph/is')
 var format = require('isomorph/format').formatObj
 var object = require('isomorph/object')
-var React = (typeof window !== "undefined" ? window.React : typeof global !== "undefined" ? global.React : null)
+var React = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null)
 
 var TextInput = require('./TextInput')
 var Textarea = require('./Textarea')
 
 var $__0=  require('./util'),prettyName=$__0.prettyName
+
+var SUFFIX_CHARS = ':?.!'
 
 /**
  * A helper for rendering a field.
@@ -430,8 +432,8 @@ BoundField.prototype.asWidget = function(kwargs) {
   if (typeof attrs.key == 'undefined') {
     attrs.key = name
   }
-  var controlled = this._isControlled(widget)
-  var validation = this._validation(widget)
+
+  var validation = this._getValidation(widget)
 
   // Always Add an onChange event handler to update form.data when the field is
   // changed.
@@ -451,7 +453,7 @@ BoundField.prototype.asWidget = function(kwargs) {
     }
   }
 
-  var renderKwargs = {attrs: attrs, controlled: controlled}
+  var renderKwargs = {attrs:attrs, controlled: this._isControlled(widget)}
   if (widget.needsInitialValue) {
     renderKwargs.initialValue = this.initialValue()
   }
@@ -608,7 +610,7 @@ BoundField.prototype.subWidgets = function() {
  */
 BoundField.prototype._addLabelSuffix = function(label, labelSuffix) {
   // Only add the suffix if the label does not end in punctuation
-  if (labelSuffix && ':?.!'.indexOf(label.charAt(label.length - 1)) == -1) {
+  if (labelSuffix && SUFFIX_CHARS.indexOf(label.charAt(label.length - 1)) == -1) {
     return label + labelSuffix
   }
   return label
@@ -640,18 +642,17 @@ BoundField.prototype._isControlled = function(widget) {
  * @param {Widget=} widget
  * @return {?(Object|string)}
  */
-BoundField.prototype._validation = function(widget) {
-  if (arguments.length === 0) {
-    widget = this.field.widget
-  }
+BoundField.prototype._getValidation = function(widget) {
   // If the field has any validation config set, it should take precedence,
   // otherwise use the form's as it has a default.
   var validation = this.field.validation || this.form.validation
+
   // Allow widgets to override the type of validation that's used for them -
   // primarily for inputs which can only be changed by click/selection.
   if (validation !== 'manual' && widget.validation !== null) {
     validation = widget.validation
   }
+
   return validation
 }
 
@@ -765,7 +766,7 @@ module.exports = CheckboxFieldRenderer
 
 var is = require('isomorph/is')
 var object = require('isomorph/object')
-var React = (typeof window !== "undefined" ? window.React : typeof global !== "undefined" ? global.React : null)
+var React = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null)
 
 var Widget = require('./Widget')
 
@@ -932,7 +933,7 @@ module.exports = ChoiceField
 var Concur = require('Concur')
 var is = require('isomorph/is')
 var object = require('isomorph/object')
-var React = (typeof window !== "undefined" ? window.React : typeof global !== "undefined" ? global.React : null)
+var React = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null)
 
 /**
  * An object used by choice Selects to enable customisation of choice widgets.
@@ -1026,7 +1027,7 @@ module.exports = ChoiceFieldRenderer
 'use strict';
 
 var object = require('isomorph/object')
-var React = (typeof window !== "undefined" ? window.React : typeof global !== "undefined" ? global.React : null)
+var React = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null)
 
 var SubWidget = require('./SubWidget')
 var Widget = require('./Widget')
@@ -1090,7 +1091,7 @@ module.exports = ChoiceInput
 'use strict';
 
 var object = require('isomorph/object')
-var React = (typeof window !== "undefined" ? window.React : typeof global !== "undefined" ? global.React : null)
+var React = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null)
 
 var CheckboxInput = require('./CheckboxInput')
 var FileInput = require('./FileInput')
@@ -1717,7 +1718,7 @@ module.exports = EmailInput
 
 var Concur = require('Concur')
 var object = require('isomorph/object')
-var React = (typeof window !== "undefined" ? window.React : typeof global !== "undefined" ? global.React : null)
+var React = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null)
 
 var $__0=  require('validators'),ValidationError=$__0.ValidationError
 
@@ -1862,7 +1863,7 @@ module.exports = ErrorList
 
 var Concur = require('Concur')
 var object = require('isomorph/object')
-var React = (typeof window !== "undefined" ? window.React : typeof global !== "undefined" ? global.React : null)
+var React = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null)
 
 var ErrorList = require('./ErrorList')
 
@@ -3724,7 +3725,7 @@ module.exports = Form
 },{"./BoundField":4,"./DeclarativeFieldsMeta":21,"./ErrorList":24,"./ErrorObject":25,"./FileField":27,"./MultipleFileField":43,"./constants":73,"./util":78,"Concur":79,"get-form-data":81,"isomorph/copy":82,"isomorph/format":83,"isomorph/is":84,"isomorph/object":85,"validators":89}],32:[function(require,module,exports){
 'use strict';
 
-var React = (typeof window !== "undefined" ? window.React : typeof global !== "undefined" ? global.React : null)
+var React = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null)
 
 var BoundField = require('./BoundField')
 var ProgressMixin = require('./ProgressMixin')
@@ -4828,7 +4829,7 @@ module.exports = ImageField
 'use strict';
 
 var object = require('isomorph/object')
-var React = (typeof window !== "undefined" ? window.React : typeof global !== "undefined" ? global.React : null)
+var React = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null)
 
 var Widget = require('./Widget')
 
@@ -5115,7 +5116,7 @@ module.exports = MultiValueField
 
 var is = require('isomorph/is')
 var object = require('isomorph/object')
-var React = (typeof window !== "undefined" ? window.React : typeof global !== "undefined" ? global.React : null)
+var React = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null)
 
 var Widget = require('./Widget')
 
@@ -5416,7 +5417,7 @@ module.exports = MultipleFileField
 'use strict';
 
 var object = require('isomorph/object')
-var React = (typeof window !== "undefined" ? window.React : typeof global !== "undefined" ? global.React : null)
+var React = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null)
 
 var HiddenInput = require('./HiddenInput')
 
@@ -5623,7 +5624,7 @@ module.exports = PasswordInput
 'use strict';
 
 var is = require('isomorph/is')
-var React = (typeof window !== "undefined" ? window.React : typeof global !== "undefined" ? global.React : null)
+var React = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null)
 
 var ProgressMixin = {
   propTypes: {
@@ -5734,7 +5735,7 @@ module.exports = RegexField
 'use strict';
 
 var object = require('isomorph/object')
-var React = (typeof window !== "undefined" ? window.React : typeof global !== "undefined" ? global.React : null)
+var React = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null)
 
 var ErrorObject = require('./ErrorObject')
 var Form = require('./Form')
@@ -5796,15 +5797,23 @@ var RenderForm = React.createClass({displayName: "RenderForm",
     }
   },
 
-  componentWillMount:function() {
-    if (this.props.form instanceof Form) {
-      this.form = this.props.form
+  setupForm: function(props) {
+    if (props.form instanceof Form) {
+      this.form = props.form
     }
     else {
-      this.form = new this.props.form(object.extend({
+      this.form = new props.form(object.extend({
         onChange: this.forceUpdate.bind(this)
-      }, getProps(this.props, Object.keys(formProps))))
+      }, getProps(props, Object.keys(formProps))))
     }
+  },
+
+  componentWillMount:function() {
+    this.setupForm(this.props);
+  },
+
+  componentWillReceiveProps: function(nextProps) {
+    this.setupForm(nextProps);
   },
 
   getForm:function() {
@@ -5868,11 +5877,12 @@ var RenderForm = React.createClass({displayName: "RenderForm",
 })
 
 module.exports =  RenderForm
+
 },{"./ErrorObject":25,"./Form":31,"./FormRow":32,"./ProgressMixin":49,"./constants":73,"./util":78,"isomorph/object":85}],55:[function(require,module,exports){
 'use strict';
 
 var object = require('isomorph/object')
-var React = (typeof window !== "undefined" ? window.React : typeof global !== "undefined" ? global.React : null)
+var React = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null)
 
 var FormRow = require('./FormRow')
 var FormSet = require('./FormSet')
@@ -6059,7 +6069,7 @@ module.exports = RendererMixin
 
 var is = require('isomorph/is')
 var object = require('isomorph/object')
-var React = (typeof window !== "undefined" ? window.React : typeof global !== "undefined" ? global.React : null)
+var React = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null)
 
 var Widget = require('./Widget')
 
@@ -6150,7 +6160,7 @@ module.exports = Select
 
 var is = require('isomorph/is')
 var object = require('isomorph/object')
-var React = (typeof window !== "undefined" ? window.React : typeof global !== "undefined" ? global.React : null)
+var React = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null)
 
 var Select = require('./Select')
 
@@ -6437,7 +6447,7 @@ module.exports = TextInput
 'use strict';
 
 var object = require('isomorph/object')
-var React = (typeof window !== "undefined" ? window.React : typeof global !== "undefined" ? global.React : null)
+var React = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null)
 
 var Widget = require('./Widget')
 
@@ -8152,7 +8162,7 @@ function getFormData(form, options) {
       continue
     }
     elementName = element.name || element.id
-    if (!elementNameLookup[elementName]) {
+    if (elementName && !elementNameLookup[elementName]) {
       elementNames.push(elementName)
       elementNameLookup[elementName] = true
     }
@@ -8182,7 +8192,7 @@ function getNamedFormElementData(form, elementName, options) {
   if (!form) {
     throw new Error('A form is required by getNamedFormElementData, was given form=' + form)
   }
-  if (!elementName) {
+  if (!elementName && toString.call(elementName) !== '[object String]') {
     throw new Error('A form element name is required by getNamedFormElementData, was given elementName=' + elementName)
   }
 
