@@ -17,7 +17,7 @@
   "main": "./lib/newforms.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/HireAnEsquire/newforms.git"
+    "url": "git+https://github.com/HireAnEsquire/newforms.git"
   },
   "dependencies": {
     "Concur": "^0.3.0",
