@@ -1,5 +1,5 @@
 /**
- * newforms 0.12.1 - https://github.com/insin/newforms
+ * newforms 0.13.2 - https://github.com/insin/newforms
  * MIT Licensed
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.forms = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
@@ -5824,7 +5824,7 @@ var RenderForm = React.createClass({displayName: "RenderForm",
     // Allow a single child to be passed for custom rendering - passing any more
     // will throw an error.
     if (React.Children.count(this.props.children) !== 0) {
-      // TODO Cloning should no longer be necessary when facebook/react#2112 lands
+      // Pass a form prop to the child, which will also be available via context
       return React.cloneElement(React.Children.only(this.props.children), {form: this.form})
     }
 
@@ -5876,7 +5876,7 @@ var RenderForm = React.createClass({displayName: "RenderForm",
   }
 })
 
-module.exports =  RenderForm
+module.exports = RenderForm
 
 },{"./ErrorObject":25,"./Form":31,"./FormRow":32,"./ProgressMixin":49,"./constants":73,"./util":78,"isomorph/object":85}],55:[function(require,module,exports){
 'use strict';
@@ -6110,14 +6110,13 @@ Select.prototype.render = function(name, selectedValue, kwargs) {
     selectedValue = ''
   }
   var finalAttrs = this.buildAttrs(kwargs.attrs, {name: name})
-  var options = this.renderOptions(kwargs.choices, [selectedValue])
+  var options = this.renderOptions(kwargs.choices)
   var valueAttr = (kwargs.controlled ? 'value' : 'defaultValue')
   finalAttrs[valueAttr] = selectedValue
   return React.createElement('select', finalAttrs, options)
 }
 
-Select.prototype.renderOptions = function(additionalChoices, selectedValues) {
-  var selectedValuesLookup = object.lookup(selectedValues)
+Select.prototype.renderOptions = function(additionalChoices) {
   var options = []
   var choices = this.choices.concat(normaliseChoices(additionalChoices))
   for (var i = 0, l = choices.length, choice; i < l; i++) {
@@ -6126,35 +6125,27 @@ Select.prototype.renderOptions = function(additionalChoices, selectedValues) {
       var optgroupOptions = []
       var optgroupChoices = choice[1]
       for (var j = 0, m = optgroupChoices.length; j < m; j++) {
-        optgroupOptions.push(this.renderOption(selectedValuesLookup,
-                                               optgroupChoices[j][0],
+        optgroupOptions.push(this.renderOption(optgroupChoices[j][0],
                                                optgroupChoices[j][1]))
       }
       options.push(React.createElement('optgroup', {label: choice[0], key: choice[9]}, optgroupOptions))
     }
     else {
-      options.push(this.renderOption(selectedValuesLookup,
-                                     choice[0],
+      options.push(this.renderOption(choice[0],
                                      choice[1]))
     }
   }
   return options
 }
 
-Select.prototype.renderOption = function(selectedValuesLookup, optValue, optLabel) {
+Select.prototype.renderOption = function(optValue, optLabel) {
   optValue = ''+optValue
   var attrs = {value: optValue, key: optValue + optLabel}
-  if (typeof selectedValuesLookup[optValue] != 'undefined') {
-    attrs['selected'] = 'selected'
-    if (!this.allowMultipleSelected) {
-      // Only allow for a single selection with this value
-      delete selectedValuesLookup[optValue]
-    }
-  }
   return React.createElement('option', attrs, optLabel)
 }
 
 module.exports = Select
+
 },{"./Widget":72,"./util":78,"isomorph/is":84,"isomorph/object":85}],58:[function(require,module,exports){
 'use strict';
 
@@ -6198,7 +6189,7 @@ SelectMultiple.prototype.render = function(name, selectedValues, kwargs) {
   }
   var finalAttrs = this.buildAttrs(kwargs.attrs, {name: name,
                                                   multiple: 'multiple'})
-  var options = this.renderOptions(kwargs.choices, selectedValues)
+  var options = this.renderOptions(kwargs.choices)
   var valueAttr = (kwargs.controlled ? 'value' : 'defaultValue')
   finalAttrs[valueAttr] = selectedValues
   return React.createElement('select', finalAttrs, options)
@@ -6219,6 +6210,7 @@ SelectMultiple.prototype.valueFromData = function(data, files, name) {
 }
 
 module.exports = SelectMultiple
+
 },{"./Select":57,"isomorph/is":84,"isomorph/object":85}],59:[function(require,module,exports){
 'use strict';
 
@@ -8112,124 +8104,127 @@ Concur.extend = function(prototypeProps, constructorProps) {
 },{}],81:[function(require,module,exports){
 'use strict';
 
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
 var NODE_LIST_CLASSES = {
-  '[object HTMLCollection]': true
-, '[object NodeList]': true
-, '[object RadioNodeList]': true
-}
+  '[object HTMLCollection]': true,
+  '[object NodeList]': true,
+  '[object RadioNodeList]': true
+};
 
 var IGNORED_INPUT_TYPES = {
-  'button': true
-, 'reset': true
-, 'submit': true
-, 'fieldset': true
-}
+  'button': true,
+  'reset': true,
+  'submit': true,
+  'fieldset': true
+};
 
 var CHECKED_INPUT_TYPES = {
-  'checkbox': true
-, 'radio': true
-}
+  'checkbox': true,
+  'radio': true
+};
 
-var TRIM_RE = /^\s+|\s+$/g
+var TRIM_RE = /^\s+|\s+$/g;
 
-var slice = Array.prototype.slice
-var toString = Object.prototype.toString
+var slice = Array.prototype.slice;
+var toString = Object.prototype.toString;
 
 /**
  * @param {HTMLFormElement} form
+ * @param {Object} options
  * @return {Object.<string,(string|Array.<string>)>} an object containing
  *   submittable value(s) held in the form's .elements collection, with
  *   properties named as per element names or ids.
  */
-function getFormData(form, options) {
+function getFormData(form) {
+  var options = arguments.length <= 1 || arguments[1] === undefined ? { trim: false } : arguments[1];
+
   if (!form) {
-    throw new Error('A form is required by getFormData, was given form=' + form)
+    throw new Error('A form is required by getFormData, was given form=' + form);
   }
 
-  if (!options) {
-    options = {trim: false}
-  }
-
-  var data = {}
-  var elementName
-  var elementNames = []
-  var elementNameLookup = {}
+  var data = {};
+  var elementName = undefined;
+  var elementNames = [];
+  var elementNameLookup = {};
 
   // Get unique submittable element names for the form
   for (var i = 0, l = form.elements.length; i < l; i++) {
-    var element = form.elements[i]
+    var element = form.elements[i];
     if (IGNORED_INPUT_TYPES[element.type] || element.disabled) {
-      continue
+      continue;
     }
-    elementName = element.name || element.id
+    elementName = element.name || element.id;
     if (elementName && !elementNameLookup[elementName]) {
-      elementNames.push(elementName)
-      elementNameLookup[elementName] = true
+      elementNames.push(elementName);
+      elementNameLookup[elementName] = true;
     }
   }
 
   // Extract element data name-by-name for consistent handling of special cases
   // around elements which contain multiple inputs.
-  for (i = 0, l = elementNames.length; i < l; i++) {
-    elementName = elementNames[i]
-    var value = getNamedFormElementData(form, elementName, options)
+  for (var i = 0, l = elementNames.length; i < l; i++) {
+    elementName = elementNames[i];
+    var value = getNamedFormElementData(form, elementName, options);
     if (value != null) {
-      data[elementName] = value
+      data[elementName] = value;
     }
   }
 
-  return data
+  return data;
 }
 
 /**
  * @param {HTMLFormElement} form
  * @param {string} elementName
+ * @param {Object} options
  * @return {(string|Array.<string>)} submittable value(s) in the form for a
  *   named element from its .elements collection, or null if there was no
  *   element with that name or the element had no submittable value(s).
  */
-function getNamedFormElementData(form, elementName, options) {
+function getNamedFormElementData(form, elementName) {
+  var options = arguments.length <= 2 || arguments[2] === undefined ? { trim: false } : arguments[2];
+
   if (!form) {
-    throw new Error('A form is required by getNamedFormElementData, was given form=' + form)
+    throw new Error('A form is required by getNamedFormElementData, was given form=' + form);
   }
   if (!elementName && toString.call(elementName) !== '[object String]') {
-    throw new Error('A form element name is required by getNamedFormElementData, was given elementName=' + elementName)
+    throw new Error('A form element name is required by getNamedFormElementData, was given elementName=' + elementName);
   }
 
-  var element = form.elements[elementName]
+  var element = form.elements[elementName];
   if (!element || element.disabled) {
-    return null
+    return null;
   }
-
-  var trim = !!(options && options.trim)
 
   if (!NODE_LIST_CLASSES[toString.call(element)]) {
-    return getFormElementValue(element, trim)
+    return getFormElementValue(element, options.trim);
   }
 
   // Deal with multiple form controls which have the same name
-  var data = []
-  var allRadios = true
+  var data = [];
+  var allRadios = true;
   for (var i = 0, l = element.length; i < l; i++) {
     if (element[i].disabled) {
-      continue
+      continue;
     }
     if (allRadios && element[i].type !== 'radio') {
-      allRadios = false
+      allRadios = false;
     }
-    var value = getFormElementValue(element[i], trim)
+    var value = getFormElementValue(element[i], options.trim);
     if (value != null) {
-      data = data.concat(value)
+      data = data.concat(value);
     }
   }
 
   // Special case for an element with multiple same-named inputs which were all
   // radio buttons: if there was a selected value, only return the value.
   if (allRadios && data.length === 1) {
-    return data[0]
+    return data[0];
   }
 
-  return (data.length > 0 ? data : null)
+  return data.length > 0 ? data : null;
 }
 
 /**
@@ -8239,57 +8234,57 @@ function getNamedFormElementData(form, elementName, options) {
  *   value(s), or null if it had none.
  */
 function getFormElementValue(element, trim) {
-  var value = null
+  var value = null;
+  var type = element.type;
 
-  if (element.type === 'select-one') {
+  if (type === 'select-one') {
     if (element.options.length) {
-      value = element.options[element.selectedIndex].value
+      value = element.options[element.selectedIndex].value;
     }
-    return value
+    return value;
   }
 
-  if (element.type === 'select-multiple') {
-    value = []
+  if (type === 'select-multiple') {
+    value = [];
     for (var i = 0, l = element.options.length; i < l; i++) {
       if (element.options[i].selected) {
-        value.push(element.options[i].value)
+        value.push(element.options[i].value);
       }
     }
     if (value.length === 0) {
-      value = null
+      value = null;
     }
-    return value
+    return value;
   }
 
   // If a file input doesn't have a files attribute, fall through to using its
   // value attribute.
-  if (element.type === 'file' && 'files' in element) {
+  if (type === 'file' && 'files' in element) {
     if (element.multiple) {
-      value = slice.call(element.files)
+      value = slice.call(element.files);
       if (value.length === 0) {
-        value = null
+        value = null;
       }
-    }
-    else {
+    } else {
       // Should be null if not present, according to the spec
-      value = element.files[0]
+      value = element.files[0];
     }
-    return value
+    return value;
   }
 
-  if (!CHECKED_INPUT_TYPES[element.type]) {
-    value = (trim ? element.value.replace(TRIM_RE, '') : element.value)
-  }
-  else if (element.checked) {
-    value = element.value
+  if (!CHECKED_INPUT_TYPES[type]) {
+    value = trim ? element.value.replace(TRIM_RE, '') : element.value;
+  } else if (element.checked) {
+    value = element.value;
   }
 
-  return value
+  return value;
 }
 
-getFormData.getNamedFormElementData = getNamedFormElementData
+getFormData.getNamedFormElementData = getNamedFormElementData;
 
-module.exports = getFormData
+exports['default'] = getFormData;
+module.exports = exports['default'];
 },{}],82:[function(require,module,exports){
 'use strict';
 
